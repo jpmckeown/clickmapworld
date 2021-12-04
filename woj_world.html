@@ -1,0 +1,90 @@
+<!-- https://stackoverflow.com/questions/42919381/world-map-that-links-to-url-when-click-on-country-specific-layer -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/outdoors-v9',
+    center: [9, 25],
+    zoom: 2
+});
+
+map.on('load', function () {
+    map.addSource("states", {
+        "type": "geojson",
+        "data": "ne_custom_geo.json"
+    });
+
+    map.addLayer({
+        "id": "state-fills",
+        "type": "fill",
+        "source": "states",
+        "layout": {},
+        "paint": {
+            "fill-color": "#627BC1",
+            "fill-opacity": 0
+        }
+    });
+
+    map.addLayer({
+        "id": "state-fills-hover",
+        "type": "fill",
+        "source": "states",
+        "layout": {},
+        "paint": {
+            // "fill-color": "#627BC1",
+            "fill-color": "#fff",
+            "fill-opacity": 1
+        },
+        "filter": ["==", "name", ""]
+    });
+
+    // When the user moves their mouse over the page, we look for features
+    // at the mouse position (e.point) and within the states layer (states-fill).
+    // If a feature is found, then we'll update the filter in the state-fills-hover
+    // layer to only show that state, thus making a hover effect.
+    map.on("mousemove", function(e) {
+        var features = map.queryRenderedFeatures(e.point, { layers: ["state-fills"] });
+        if (features.length) {
+            map.getCanvas().style.cursor = 'pointer';
+            map.setFilter("state-fills-hover", ["==", "name", features[0].properties.name]);
+        } else {
+            map.setFilter("state-fills-hover", ["==", "name", ""]);
+            map.getCanvas().style.cursor = '';
+        }
+    });
+
+    // Reset the state-fills-hover layer's filter when the mouse leaves the map
+    map.on("mouseout", function() {
+        map.getCanvas().style.cursor = 'auto';
+        map.setFilter("state-fills-hover", ["==", "name", ""]);
+    });
+  
+    map.on("click", function(e) {
+        var features = map.queryRenderedFeatures(e.point, { layers: ["state-fills"] });
+        console.log(features[0].properties.name);
+        // if (features.length) {
+        //     window.location = 'https://mckeown.me/eo/knit_footer_menu.html#' + features[0].properties.name
+        // }
+    });
+});
+</script>
+
+</body>
+</html>
